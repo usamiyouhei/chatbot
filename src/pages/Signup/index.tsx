@@ -1,13 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import "./index.css";
 import { useState } from "react";
 import { authRepository } from "../../modules/auth/auth.repository";
+import { useAtom } from "jotai";
+import { currentUserAtom } from "../../modules/auth/current-user.state";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
 
   const signup = async () => {
     setIsLoading(true);
@@ -17,7 +20,8 @@ export default function Signup() {
         email,
         password,
       );
-      console.log(user, token);
+      setCurrentUser(user);
+      // console.log(user, token);
     } catch (error) {
       console.error(error);
       alert("ユーザー登録に失敗しました");
@@ -25,6 +29,9 @@ export default function Signup() {
       setIsLoading(false);
     }
   };
+
+  if (currentUser) return <Navigate to="/" />;
+
   return (
     <div className="auth-container">
       <div className="auth-card">

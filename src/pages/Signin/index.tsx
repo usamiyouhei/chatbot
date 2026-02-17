@@ -1,18 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import "./index.css";
 import { useState } from "react";
 import { authRepository } from "../../modules/auth/auth.repository";
+import { currentUserAtom } from "../../modules/auth/current-user.state";
+import { useAtom } from "jotai";
 
 export default function Signin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
 
   const signin = async () => {
     setIsLoading(true);
     try {
       const { user, token } = await authRepository.signin(email, password);
-      console.log(user, token);
+      // console.log(user, token);
+      setCurrentUser(user);
     } catch (error) {
       console.error(error);
       alert("ログインに失敗しました");
@@ -20,6 +24,8 @@ export default function Signin() {
       setIsLoading(false);
     }
   };
+
+  if (currentUser) return <Navigate to="/" />;
 
   return (
     <div className="auth-container">
