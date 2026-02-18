@@ -21,6 +21,7 @@ export default function Signup() {
         password,
       );
       setCurrentUser(user);
+      localStorage.setItem("token", token);
       // console.log(user, token);
     } catch (error) {
       console.error(error);

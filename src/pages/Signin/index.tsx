@@ -17,6 +17,7 @@ export default function Signin() {
       const { user, token } = await authRepository.signin(email, password);
       // console.log(user, token);
       setCurrentUser(user);
+      localStorage.setItem("token", token);
     } catch (error) {
       console.error(error);
       alert("ログインに失敗しました");
