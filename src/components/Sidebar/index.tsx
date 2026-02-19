@@ -1,14 +1,25 @@
-import { HiOutlineArrowRightOnRectangle } from 'react-icons/hi2';
-import ConversationList from './ConversationList';
+import { HiOutlineArrowRightOnRectangle } from "react-icons/hi2";
+import ConversationList from "./ConversationList";
+import { conversationRepository } from "../../modules/conversations/conversation.repository";
+import { Conversation } from "../../modules/conversations/conversation.entity";
 
 export default function Sidebar() {
+  const createConversation = async () => {
+    try {
+      const conversation = await conversationRepository.create();
+      console.log(conversation);
+    } catch (error) {
+      console.error(error);
+      alert("会話の作成に失敗しました");
+    }
+  };
   return (
     <div className="sidebar">
-      <div style={{ padding: '16px' }}>
+      <div style={{ padding: "16px" }}>
         <button
           className="btn-primary"
-          style={{ width: '100%' }}
-          onClick={() => {}}
+          style={{ width: "100%" }}
+          onClick={createConversation}
         >
           + 新規チャット
         </button>
@@ -17,17 +28,17 @@ export default function Sidebar() {
 
       <div
         style={{
-          padding: '16px',
-          marginTop: 'auto',
-          borderTop: '1px solid #E5E5E5',
+          padding: "16px",
+          marginTop: "auto",
+          borderTop: "1px solid #E5E5E5",
         }}
       >
         <button
           className="sidebar-item"
           style={{
-            width: '100%',
-            border: 'none',
-            background: 'transparent',
+            width: "100%",
+            border: "none",
+            background: "transparent",
             margin: 0,
           }}
           onClick={() => {}}
