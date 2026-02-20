@@ -1,12 +1,21 @@
 import { HiOutlineArrowRightOnRectangle } from "react-icons/hi2";
 import ConversationList from "./ConversationList";
 import { conversationRepository } from "../../modules/conversations/conversation.repository";
+import { conversationsAtom } from "../../modules/conversations/conversation.state";
+import { useSetAtom } from "jotai";
+import { useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+
+  const setConversations = useSetAtom(conversationsAtom);
+
   const createConversation = async () => {
     try {
       const conversation = await conversationRepository.create();
       console.log(conversation);
+      setConversations((prev) => [conversation, ...prev]);
+      navigate(`/chats/${conversation.id}`);
     } catch (error) {
       console.error(error);
       alert("会話の作成に失敗しました");
