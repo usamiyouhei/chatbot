@@ -6,4 +6,8 @@ export const conversationRepository = {
     const { data } = await api.post("/conversations");
     return new Conversation(data);
   },
+  async findAll(): Promise<Conversation[]> {
+    const { data } = await api.get("conversations");
+    return data.map((item: Conversation) => new Conversation(item));
+  },
 };
