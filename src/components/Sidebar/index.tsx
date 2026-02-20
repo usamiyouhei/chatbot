@@ -1,7 +1,6 @@
 import { HiOutlineArrowRightOnRectangle } from "react-icons/hi2";
 import ConversationList from "./ConversationList";
 import { conversationRepository } from "../../modules/conversations/conversation.repository";
-import { Conversation } from "../../modules/conversations/conversation.entity";
 
 export default function Sidebar() {
   const createConversation = async () => {
