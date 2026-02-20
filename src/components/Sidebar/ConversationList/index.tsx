@@ -23,9 +23,9 @@ export default function ConversationList() {
 
   return (
     <div className="conversation-list">
-      <ConversationItem />
-      <ConversationItem />
-      <ConversationItem />
+      {conversations.map((conversation) => (
+        <ConversationItem key={conversation.id} conversation={conversation} />
+      ))}
     </div>
   );
 }
