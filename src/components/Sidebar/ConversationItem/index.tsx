@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { HiOutlineTrash } from "react-icons/hi2";
 import "./index.css";
 import type { Conversation } from "../../../modules/conversations/conversation.entity";
@@ -13,9 +13,14 @@ interface ConversationItemProps {
 export default function ConversationItem({
   conversation,
 }: ConversationItemProps) {
+  const { conversationId } = useParams();
   const setConversations = useSetAtom(conversationsAtom);
+  const isActive = conversationId === conversation.id;
+  const navigate = useNavigate();
 
-  const deleteConversations = async (e: MouseEvent) => {
+  const deleteConversations = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     e.preventDefault();
 
     if (!window.confirm("この会話を削除しますか？")) return;
@@ -25,13 +30,19 @@ export default function ConversationItem({
       setConversations((prev) =>
         prev.filter((item) => item.id !== conversation.id),
       );
+      if (isActive) {
+        navigate("/");
+      }
     } catch (error) {
       console.error(error);
       alert("会話の削除に失敗しました");
     }
   };
   return (
-    <Link to={`/chats/${conversation.id}`} className="conversation-item">
+    <Link
+      to={`/chats/${conversation.id}`}
+      className={`conversation-item ${isActive ? "active" : ""}`}
+    >
       <div className="conversation-title">
         {conversation.title || "新しい会話"}
       </div>
