@@ -18,6 +18,8 @@ export default function ChatContainer() {
 
     try {
       await createUserMessage(currentMessage);
+      setInputText("");
+      await createAiMessage(currentMessage);
     } catch (error) {
       console.error(error);
       alert("メッセージの送信に失敗しました");
@@ -35,6 +37,16 @@ export default function ChatContainer() {
       content,
     });
     console.log(userMessage);
+  };
+
+  const createAiMessage = async (content: string) => {
+    const result = await model.generateContent(content);
+
+    const aiMessage = await messageRepository.create(conversationId!, {
+      role: "assistant",
+      content: result.response.text(),
+    });
+    console.log(aiMessage);
   };
 
   return (
@@ -74,7 +86,11 @@ export default function ChatContainer() {
             onChange={(e) => setInputText(e.target.value)}
             value={inputText}
           />
-          <button className="send-button" onClick={handleSend}>
+          <button
+            className="send-button"
+            onClick={handleSend}
+            disabled={isLoading || !inputText.trim()}
+          >
             <HiOutlinePaperAirplane size={24} />
           </button>
         </div>
