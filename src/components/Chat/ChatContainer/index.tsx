@@ -3,15 +3,38 @@ import { HiOutlinePaperAirplane, HiOutlinePhoto } from "react-icons/hi2";
 import "./index.css";
 import { useState } from "react";
 import { model } from "../../../lib/gemini";
+import { useParams } from "react-router-dom";
+import { messageRepository } from "../../../modules/messages/message.repository";
 
 export default function ChatContainer() {
   const [inputText, setInputText] = useState("");
+  const { conversationId } = useParams();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSend = async () => {
     const currentMessage = inputText.trim();
 
+    setIsLoading(true);
+
+    try {
+      await createUserMessage(currentMessage);
+    } catch (error) {
+      console.error(error);
+      alert("メッセージの送信に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+
     const result = await model.generateContent(currentMessage);
     console.log(result.response.text());
+  };
+
+  const createUserMessage = async (content: string) => {
+    const userMessage = await messageRepository.create(conversationId!, {
+      role: "user",
+      content,
+    });
+    console.log(userMessage);
   };
 
   return (
