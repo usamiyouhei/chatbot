@@ -1,15 +1,31 @@
 import MessageList from "../MessageList";
 import { HiOutlinePaperAirplane, HiOutlinePhoto } from "react-icons/hi2";
 import "./index.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { model } from "../../../lib/gemini";
 import { useParams } from "react-router-dom";
 import { messageRepository } from "../../../modules/messages/message.repository";
+import type { Message } from "../../../modules/messages/message.entity";
+import { conversationRepository } from "../../../modules/conversations/conversation.repository";
 
 export default function ChatContainer() {
   const [inputText, setInputText] = useState("");
   const { conversationId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    fetchMessages(conversationId!);
+  }, []);
+
+  const fetchMessages = async (conversationId: string) => {
+    try {
+      const conversation = await conversationRepository.findOne(conversationId);
+      setMessages(conversation.messages || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleSend = async () => {
     const currentMessage = inputText.trim();
@@ -36,6 +52,7 @@ export default function ChatContainer() {
       role: "user",
       content,
     });
+    setMessages((prev) => [...prev, userMessage]);
     console.log(userMessage);
   };
 
@@ -46,12 +63,13 @@ export default function ChatContainer() {
       role: "assistant",
       content: result.response.text(),
     });
+    setMessages((prev) => [...prev, aiMessage]);
     console.log(aiMessage);
   };
 
   return (
     <div className="chat-container">
-      <MessageList />
+      <MessageList messages={messages} />
 
       {/* Integrated Message Input Area */}
       <div className="message-input-container">
