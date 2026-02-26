@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Message } from "../../../modules/messages/message.entity";
 import "./index.css";
 
@@ -6,6 +7,12 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages }: MessageListProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
     <div className="message-list">
       {messages.map((message) => {
@@ -29,6 +36,7 @@ export default function MessageList({ messages }: MessageListProps) {
           </div>
         );
       })}
+      <div ref={bottomRef} />
     </div>
   );
 }
