@@ -1,12 +1,19 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../../../modules/messages/message.entity";
 import "./index.css";
+import TypingIndicator from "../TypingIndicator";
 
 interface MessageListProps {
   messages: Message[];
+  streamingText: string;
+  isStreaming: boolean;
 }
 
-export default function MessageList({ messages }: MessageListProps) {
+export default function MessageList({
+  messages,
+  streamingText,
+  isStreaming,
+}: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,6 +43,14 @@ export default function MessageList({ messages }: MessageListProps) {
           </div>
         );
       })}
+      {(isStreaming || streamingText) && (
+        <div className="message-item message-item-ai">
+          <div className="message-bubble message-ai">
+            {streamingText}
+            {isStreaming && !streamingText && <TypingIndicator />}
+          </div>
+        </div>
+      )}
       <div ref={bottomRef} />
     </div>
   );

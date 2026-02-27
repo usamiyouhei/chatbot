@@ -13,6 +13,7 @@ export default function ChatContainer() {
   const { conversationId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [streamingText, setStreamingText] = useState("");
 
   useEffect(() => {
     fetchMessages(conversationId!);
@@ -57,19 +58,33 @@ export default function ChatContainer() {
   };
 
   const createAiMessage = async (content: string) => {
-    const result = await model.generateContent(content);
+    const result = await model.generateContentStream(content);
+
+    let fullText = "";
+
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      fullText += chunkText;
+      setStreamingText(fullText);
+    }
 
     const aiMessage = await messageRepository.create(conversationId!, {
       role: "assistant",
-      content: result.response.text(),
+      content: fullText,
+      // content: result.response.text(),
     });
     setMessages((prev) => [...prev, aiMessage]);
+    setStreamingText("");
     console.log(aiMessage);
   };
 
   return (
     <div className="chat-container">
-      <MessageList messages={messages} />
+      <MessageList
+        messages={messages}
+        isStreaming={isLoading}
+        streamingText={streamingText}
+      />
 
       {/* Integrated Message Input Area */}
       <div className="message-input-container">
