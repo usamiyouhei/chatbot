@@ -1,12 +1,13 @@
 import MessageList from "../MessageList";
 import { HiOutlinePaperAirplane, HiOutlinePhoto } from "react-icons/hi2";
 import "./index.css";
-import { useEffect, useState } from "react";
-import { model } from "../../../lib/gemini";
+import { useEffect, useRef, useState } from "react";
+import { startChatSesson } from "../../../lib/gemini";
 import { useParams } from "react-router-dom";
 import { messageRepository } from "../../../modules/messages/message.repository";
 import type { Message } from "../../../modules/messages/message.entity";
 import { conversationRepository } from "../../../modules/conversations/conversation.repository";
+import type { ChatSession } from "@google/generative-ai";
 
 export default function ChatContainer() {
   const [inputText, setInputText] = useState("");
@@ -14,18 +15,28 @@ export default function ChatContainer() {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingText, setStreamingText] = useState("");
+  const chatSessionRef = useRef<ChatSession | null>(null);
 
   useEffect(() => {
     fetchMessages(conversationId!);
-  }, []);
+  }, [conversationId]);
 
   const fetchMessages = async (conversationId: string) => {
     try {
       const conversation = await conversationRepository.findOne(conversationId);
       setMessages(conversation.messages || []);
+      initializeChatSession(conversation.messages || []);
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const initializeChatSession = (messages: Message[]) => {
+    const history = messages.map((message) => ({
+      role: message.role === "user" ? "user" : "model",
+      parts: [{ text: message.content }],
+    }));
+    chatSessionRef.current = startChatSesson(history);
   };
 
   const handleSend = async () => {
@@ -58,7 +69,8 @@ export default function ChatContainer() {
   };
 
   const createAiMessage = async (content: string) => {
-    const result = await model.generateContentStream(content);
+    if (!chatSessionRef.current) return;
+    const result = await chatSessionRef.current.sendMessageStream(content);
 
     let fullText = "";
 
