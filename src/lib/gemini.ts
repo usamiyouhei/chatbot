@@ -9,3 +9,9 @@ const model = genAi.getGenerativeModel({
 export const startChatSesson = (history: Content[]) => {
   return model.startChat({ history });
 };
+
+export const generateConversationTitle = async (message: string) => {
+  const prompt = `以下のメッセージに対する会話のタイトルを15字以内で生成してください。タイトルのみを返してください。\n\nメッセージ:${message}`;
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+};
