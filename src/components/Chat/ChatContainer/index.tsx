@@ -2,12 +2,17 @@ import MessageList from "../MessageList";
 import { HiOutlinePaperAirplane, HiOutlinePhoto } from "react-icons/hi2";
 import "./index.css";
 import { useEffect, useRef, useState } from "react";
-import { startChatSesson } from "../../../lib/gemini";
+import {
+  generateConversationTitle,
+  startChatSesson,
+} from "../../../lib/gemini";
 import { useParams } from "react-router-dom";
 import { messageRepository } from "../../../modules/messages/message.repository";
 import type { Message } from "../../../modules/messages/message.entity";
 import { conversationRepository } from "../../../modules/conversations/conversation.repository";
 import type { ChatSession } from "@google/generative-ai";
+import { useSetAtom } from "jotai";
+import { conversationsAtom } from "../../../modules/conversations/conversation.state";
 
 export default function ChatContainer() {
   const [inputText, setInputText] = useState("");
@@ -16,6 +21,7 @@ export default function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingText, setStreamingText] = useState("");
   const chatSessionRef = useRef<ChatSession | null>(null);
+  const setConversations = useSetAtom(conversationsAtom);
 
   useEffect(() => {
     fetchMessages(conversationId!);
@@ -41,22 +47,37 @@ export default function ChatContainer() {
 
   const handleSend = async () => {
     const currentMessage = inputText.trim();
-
     setIsLoading(true);
+    const isFirstMessage = messages.length === 0;
 
     try {
       await createUserMessage(currentMessage);
       setInputText("");
       await createAiMessage(currentMessage);
+      if (isFirstMessage) {
+        generateAndSaveTitle(currentMessage);
+      }
     } catch (error) {
       console.error(error);
       alert("メッセージの送信に失敗しました");
     } finally {
       setIsLoading(false);
     }
+  };
 
-    const result = await model.generateContent(currentMessage);
-    console.log(result.response.text());
+  const generateAndSaveTitle = async (message: string) => {
+    const title = await generateConversationTitle(message);
+    const updatedConversation = await conversationRepository.updateTitle(
+      conversationId!,
+      title,
+    );
+    setConversations((prev) =>
+      prev.map((conversation) =>
+        conversation.id === updatedConversation.id
+          ? updatedConversation
+          : conversation,
+      ),
+    );
   };
 
   const createUserMessage = async (content: string) => {

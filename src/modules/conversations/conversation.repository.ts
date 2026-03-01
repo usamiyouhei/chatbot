@@ -17,4 +17,8 @@ export const conversationRepository = {
   async delete(id: string): Promise<void> {
     await api.delete(`/conversations/${id}`);
   },
+  async updateTitle(id: string, title: string): Promise<Conversation> {
+    const { data } = await api.patch(`/conversations/${id}`, { title });
+    return new Conversation(data);
+  },
 };
