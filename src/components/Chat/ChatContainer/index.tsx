@@ -22,6 +22,9 @@ export default function ChatContainer() {
   const [streamingText, setStreamingText] = useState("");
   const chatSessionRef = useRef<ChatSession | null>(null);
   const setConversations = useSetAtom(conversationsAtom);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchMessages(conversationId!);
@@ -62,6 +65,30 @@ export default function ChatContainer() {
       alert("メッセージの送信に失敗しました");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("画像ファイルのみアップロード可能です");
+      return;
+    }
+
+    setSelectedFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  const clearFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -121,26 +148,28 @@ export default function ChatContainer() {
 
       {/* Integrated Message Input Area */}
       <div className="message-input-container">
-        {/* Preview Area - Commented out or toggleable */}
-        {/* <div className="image-preview-container">
+        {previewUrl && (
+          <div className="image-preview-container">
             <div className="image-preview-wrapper">
-              <img src="" alt="preview" className="image-preview" />
-              <button className="image-preview-close" onClick={() => {}}>
+              <img src={previewUrl} alt="preview" className="image-preview" />
+              <button className="image-preview-close" onClick={clearFile}>
                 ×
               </button>
             </div>
-          </div> */}
+          </div>
+        )}
 
         <div className="message-input-wrapper">
           <input
             type="file"
             accept="image/*"
             style={{ display: "none" }}
-            onChange={() => {}}
+            onChange={handleFileSelect}
+            ref={fileInputRef}
           />
           <button
             className="icon-button"
-            onClick={() => {}}
+            onClick={() => fileInputRef.current?.click()}
             title="画像をアップロード"
           >
             <HiOutlinePhoto size={24} />
