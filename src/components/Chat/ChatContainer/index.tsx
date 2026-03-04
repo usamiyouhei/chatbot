@@ -10,9 +10,10 @@ import { useParams } from "react-router-dom";
 import { messageRepository } from "../../../modules/messages/message.repository";
 import type { Message } from "../../../modules/messages/message.entity";
 import { conversationRepository } from "../../../modules/conversations/conversation.repository";
-import type { ChatSession } from "@google/generative-ai";
+import type { ChatSession, Part } from "@google/generative-ai";
 import { useSetAtom } from "jotai";
 import { conversationsAtom } from "../../../modules/conversations/conversation.state";
+import { uploadRepository } from "../../../modules/upload/upload.repository";
 
 export default function ChatContainer() {
   const [inputText, setInputText] = useState("");
@@ -56,6 +57,7 @@ export default function ChatContainer() {
     try {
       await createUserMessage(currentMessage);
       setInputText("");
+      clearFile();
       await createAiMessage(currentMessage);
       if (isFirstMessage) {
         generateAndSaveTitle(currentMessage);
@@ -108,9 +110,16 @@ export default function ChatContainer() {
   };
 
   const createUserMessage = async (content: string) => {
+    let imageUrl;
+
+    if (selectedFile) {
+      imageUrl = await uploadRepository.uploadImage(selectedFile);
+    }
+
     const userMessage = await messageRepository.create(conversationId!, {
       role: "user",
       content,
+      imageUrl,
     });
     setMessages((prev) => [...prev, userMessage]);
     console.log(userMessage);
@@ -118,7 +127,13 @@ export default function ChatContainer() {
 
   const createAiMessage = async (content: string) => {
     if (!chatSessionRef.current) return;
-    const result = await chatSessionRef.current.sendMessageStream(content);
+
+    const parts: Array<string | Part> = [content];
+    if (selectedFile) {
+      const image = await fileToGenerativePart(selectedFile);
+      parts.push(image);
+    }
+    const result = await chatSessionRef.current.sendMessageStream(parts);
 
     let fullText = "";
 
@@ -136,6 +151,21 @@ export default function ChatContainer() {
     setMessages((prev) => [...prev, aiMessage]);
     setStreamingText("");
     console.log(aiMessage);
+  };
+
+  const fileToGenerativePart = async (file: File) => {
+    const base64EncodeDataPromise = new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+
+    return {
+      inlineData: {
+        data: await base64EncodeDataPromise,
+        mimeType: file.type,
+      },
+    };
   };
 
   return (
@@ -184,7 +214,7 @@ export default function ChatContainer() {
           <button
             className="send-button"
             onClick={handleSend}
-            disabled={isLoading || !inputText.trim()}
+            disabled={isLoading || (!inputText.trim() && !selectedFile)}
           >
             <HiOutlinePaperAirplane size={24} />
           </button>
