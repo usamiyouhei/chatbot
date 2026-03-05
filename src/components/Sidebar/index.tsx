@@ -4,11 +4,12 @@ import { conversationRepository } from "../../modules/conversations/conversation
 import { conversationsAtom } from "../../modules/conversations/conversation.state";
 import { useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
+import { currentUserAtom } from "../../modules/auth/current-user.state";
 
 export default function Sidebar() {
   const navigate = useNavigate();
-
   const setConversations = useSetAtom(conversationsAtom);
+  const setCurrentUser = useSetAtom(currentUserAtom);
 
   const createConversation = async () => {
     try {
@@ -20,6 +21,11 @@ export default function Sidebar() {
       console.error(error);
       alert("会話の作成に失敗しました");
     }
+  };
+
+  const signout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(undefined);
   };
   return (
     <div className="sidebar">
@@ -49,7 +55,7 @@ export default function Sidebar() {
             background: "transparent",
             margin: 0,
           }}
-          onClick={() => {}}
+          onClick={signout}
         >
           <HiOutlineArrowRightOnRectangle size={20} />
           <span>ログアウト</span>
