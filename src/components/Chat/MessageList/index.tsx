@@ -32,6 +32,13 @@ export default function MessageList({
             <div
               className={`message-content-stack ${isUser ? "stack-user" : "stack-ai"}`}
             >
+              {message.imageUrl && (
+                <img
+                  src={message.imageUrl}
+                  alt="upload image"
+                  className="message-image"
+                />
+              )}
               {message.content && (
                 <div
                   className={`message-bubble ${isUser ? "message-user" : "message-ai"}`}
